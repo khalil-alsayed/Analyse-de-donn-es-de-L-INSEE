@@ -1,0 +1,446 @@
+---
+title: "Projet AD"
+author: "khalil al sayed"
+date: "19/01/2021"
+output:
+  pdf_document: default
+  html_document: 
+    df_print: kable
+    toc: yes
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(FactoMineR)
+library(raster)
+
+library(ade4)
+library(factoextra)
+```
+
+
+## Exercice 2 (construction de la nouvelle base de données)
+
+
+```{r ODD_DEP, echo=FALSE, message=FALSE, warning=FALSE, paged.print=TRUE}
+ODD<-read.csv("C:/Users/khali/Desktop/ODD_DEP2.csv",header = TRUE)
+c<-c(1:101)
+for (i in 0:100)
+  c[i+1]<-ODD[7*i+1,2]
+f<-c(1:101)
+A<-data.frame(row.names=c,taux.pvt<-f,part.actifs.stables<-f,part.depl.dom.trav<-f,moy.dist.min.hp<-f,moy.dist.km<-f,ges<-f)
+for (j in 1:6)
+  for (i in 1:101)
+    A[i,j]=0
+for (i in 0:100)
+A[i+1,1]<-ODD[1+7*i,28]
+for (i in 0:100)
+  A[i+1,2]<-ODD[39794+3*i,28]
+for (i in 0:100)
+  A[i+1,3]<-ODD[39089+7*i,28]+ODD[39089+7*i+2,28]
+for (i in 0:100)
+  A[i+1,4]<-ODD[38277+2*i,28]
+for (i in 0:100)
+  A[i+1,5]<-ODD[38479+2*i,28]
+o=matrix(nrow = 101,ncol=7)
+for (j in 1:7)
+  for (i in 1:101)
+    o[i,j]<-0
+for (i in 0:100)
+  o[i+1,]<-c(ODD[61680+7*i,24],ODD[61680+1+7*i,24],ODD[61680+2+7*i,24],ODD[61680+3+7*i,24],ODD[61680+4+7*i,24],ODD[61680+5+7*i,24],ODD[61680+6+7*i,24])
+  
+for (i in 0:95)
+  A[i+1,6]<-sum(o[i+1,],na.rm =TRUE)
+for (i in 96:100)
+  A[i+1,6]<-sum(o[i+1,])
+
+A
+```
+
+
+## Exercice 3
+
+# étude descriptive pour le variable taux de pauvreté total (2016):
+
+1-calcule de la moyenne,médiane, max, min :
+
+```{r echo=FALSE}
+summary(A[,1],na.rm=TRUE)
+```
+2-calcule de la variance et de l'écart-type:
+
+```{r echo=FALSE}
+var(A[,1],na.rm=TRUE)
+sd(A[,1],na.rm=TRUE)
+```
+3-diagramme en bâtons de la variable taux de pauvreté total (2016):
+
+
+```{r echo=FALSE, fig.width=13}
+s<-c(1:101)
+for (i in 0:100)
+  s[i+1]<-ODD[1+7*i,2]
+barplot(A[,1],xlab = "département",ylab = "taux de pauvreté total en %",ylim = c(0,40), main = "diagramme en bâtons",names.arg =s)
+```
+
+
+4-histogramme de la variable taux de pauvreté total (2016):
+
+
+```{r echo=FALSE}
+hist(A[,1],xlab ="taux de pauvreté total en %",ylab = "frequence",main = "histogramme" )
+```
+
+
+5-boîte à moustaches de la variable taux de pauvreté total (2016):
+
+
+```{r echo=FALSE}
+boxplot(A[,1],main="boîte à moustaches",ylab="taux de pauvreté total en %")
+```
+
+Interprétation des résultats (d'histogramme et de boîte à moustaches): On observe sur le diagramme boîte à moustaches une boîte particulièrement étroite, ce qui indique une faible dispersion des résultats. Cependant, 4 valeurs sont marquées comme aberrantes et situées au-delà du maximum estimé. Ces valeurs correspondent aux départements La Réunion, Martinique, Seine-Saint-Denis et Haute-Corse, qui sont significativement pauvres par rapport aux autres départements.
+Ces observations sont corroborées par l'histogramme qui regroupe presque 60% des départements sous un taux de 
+pauvreté compris entre 10% et 15%, là où La Réunion, Martinique, Seine-Saint-Denis et Haute-Corse présentent
+un taux de pauvreté égal à 39%, 29.8%, 28.6% et 21.7% respectivement.
+
+Conclusion : Le taux de pauvreté des différents départements est dans l'ensemble relativement homogène outre les
+quatre départements La Réunion, Martinique, Seine-Saint-Denis et Haute-Corse, extrêmement pauvres par rapport aux autres, avec dans le cas de La Réunion un taux de pauvreté allant jusqu'à 39%, ce qui correspond à plus du double de la moyenne.
+
+6-carte de france métropolitaine pour le variable taux de pauvreté total (2016):
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+FranceFormes <- getData(name="GADM", country="FRA", level=2)
+idx <- match(FranceFormes$NAME_2, c)
+concordance <- A[idx,1]
+FranceFormes$taux_pv_tot <- concordance
+couleurs <- colorRampPalette(c('white', 'red'))
+spplot(FranceFormes,"taux_pv_tot" ,col.regions=couleurs(30),  main=list(label="taux de pauvreté total en % (2016)",cex=.8))
+```
+
+# étude descriptive pour le part des actifs stables parmi les actifs ayant un emploi (2016):
+
+1-calcule de la moyenne,médiane, max, min :
+
+```{r echo=FALSE}
+summary(A[,2],na.rm=TRUE)
+```
+2-calcule de la variance et de l'écart-type:
+
+```{r echo=FALSE}
+var(A[,2],na.rm=TRUE)
+sd(A[,2],na.rm=TRUE)
+```
+
+3-diagramme en bâtons de la part des actifs stables parmi les actifs ayant un emploi (2016) :
+
+```{r echo=FALSE, fig.width=13}
+barplot(A[,2],xlab = "département",ylab = "part des actifs stables en %",ylim = c(0,70), main = "diagramme en bâtons",names.arg =s)
+```
+
+4-histogramme de la part des actifs stables parmi les actifs ayant un emploi (2016):
+
+```{r echo=FALSE}
+hist(A[,2],xlab ="part des actifs stables en %",ylab = "frequence",main = "histogramme" )
+```
+
+5-boîte à moustaches de la part des actifs stables parmi les actifs ayant un emploi (2016):
+
+```{r echo=FALSE}
+boxplot(A[,2],main="boîte à moustaches",ylab="part des actifs stables en %")
+```
+
+Interprétation des résultats (d'histogramme et de boîte à moustaches): On remarque une dispersion élevée entre les différentes valeurs ici : la boîte à moustaches est étirée, les extrema sont fortement éloignés de la valeur médiane et en outre, on peut voir 5 valeurs aberrantes, qui correspondent aux départements Paris, Guyane, Corse-du-Sud, La Réunion et Bouches-du-Rhône et qui possédent une part très importante d'actifs stables allant jusqu'à 68% pour Paris. De la même façon on observe sur l'histogramme une forte hétérogénéité des valeurs.
+
+6-carte de france métropolitaine pour la part des actifs stables parmi les actifs ayant un emploi (2016) :
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+FranceFormes <- getData(name="GADM", country="FRA", level=2)
+idx <- match(FranceFormes$NAME_2, c)
+concordance <- A[idx,2]
+FranceFormes$part_act_sta <- concordance
+couleurs <- colorRampPalette(c('white', 'blue'))
+spplot(FranceFormes,"part_act_sta" ,col.regions=couleurs(30),  main=list(label=" part actif stable parmi les actifs ayant un emploi en % (2016)",cex=.8))
+```
+
+# étude descriptive pour la parts modales des déplacements domicile-travail en voiture et en transports en commun (2016):
+
+1-calcule de la moyenne,médiane, max, min :
+
+```{r echo=FALSE}
+summary(A[,3],na.rm=TRUE)
+```
+
+2-calcule de la variance et de l'écart-type:
+
+```{r echo=FALSE}
+var(A[,3],na.rm=TRUE)
+sd(A[,3],na.rm=TRUE)
+```
+
+3-diagramme en bâtons de la parts modales des déplacements domicile-travail en voiture et en transports en commun (2016) :
+
+```{r echo=FALSE, fig.width=13}
+barplot(A[,3],xlab = "département",ylab = "parts modales des déplacements en %",ylim = c(0,100), main = "diagramme en bâtons",names.arg =s)
+```
+
+
+4-histogramme de la parts modales des déplacements domicile-travail en voiture et en transports en commun (2016):
+
+```{r echo=FALSE}
+hist(A[,3],xlab ="parts modales des déplacements en %",ylab = "frequence",main = "histogramme" )
+```
+
+5-boîte à moustaches de la parts modales des déplacements domicile-travail en voiture et en transports en commun (2016):
+
+```{r echo=FALSE}
+boxplot(A[,3],main="boîte à moustaches",ylab="parts modales des déplacements en %")
+```
+
+Interprétation des résultats (d'histogramme et de boîte à moustaches): On observe en premier lieu des valeurs très proches les unes des autres et très peu de dispersion malgré les 7 valeurs aberrantes sur la boîte à moustaches : d'après l'histogramme, 95% des départements ont entre 80% et 90% de parts modales des déplacements. On remarque en particulier que Mayotte est très éloigné de tous les autres départements avec seulement 68.38%. Les autres anomalies sont les départements Guyane, Paris, Alpes-Maritimes, Lozère, Hautes-Alpes et Cantal qui possèdent tous un faible pourcentage de déplacements domicile-travail.
+
+6-carte de france métropolitaine pour le variable taux de pauvreté total (2016):
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+FranceFormes <- getData(name="GADM", country="FRA", level=2)
+idx <- match(FranceFormes$NAME_2, c)
+concordance <- A[idx,3]
+FranceFormes$part_m_d <- concordance
+couleurs <- colorRampPalette(c('white', 'brown'))
+spplot(FranceFormes,"part_m_d" ,col.regions=couleurs(30),  main=list(label="parts modales des déplacements domicile-travail en voiture et en transports en commun en % (2016)",cex=.8))
+```
+
+# étude descriptive pour la durée moyenne des navettes domicile-travail pour les actifs occupés (minutes) (2016):
+
+1-calcule de la moyenne,médiane, max, min :
+
+```{r echo=FALSE}
+summary(A[,4],na.rm=TRUE)
+```
+
+2-calcule de la variance et de l'écart-type:
+
+```{r echo=FALSE}
+var(A[,4],na.rm=TRUE)
+sd(A[,4],na.rm=TRUE)
+```
+
+3-diagramme en bâtons de la durée moyenne des navettes domicile-travail pour les actifs occupés (minutes) (2016) :
+
+```{r echo=FALSE, fig.width=13}
+barplot(A[,4],xlab = "département",ylab = "durée moyenne des navettes en minutes",ylim = c(0,40), main = "diagramme en bâtons",names.arg =s)
+```
+
+4-histogramme de la durée moyenne des navettes domicile-travail pour les actifs occupés (minutes) (2016):
+
+```{r echo=FALSE}
+hist(A[,4],xlab ="durée moyenne des navettes en minutes",ylab = "frequence",main = "histogramme" )
+```
+
+5-boîte à moustaches de la durée moyenne des navettes domicile-travail pour les actifs occupés (minutes) (2016):
+
+```{r echo=FALSE}
+boxplot(A[,4],main="boîte à moustaches",ylab="durée moyenne des navettes en minutes")
+```
+
+Interprétation des résultats (d'histogramme et de boîte à moustaches): Les valeurs sont toutes fortements concentrées autour de la médiane à environ 21 minutes (80% des départements ont entre 15 et 25 minutes pour durée moyenne des navettes), avec tout de même des valeurs extrêmes à la fois du côté du minimum et du maximum. Ainsi Guyane, Guadeloupe, La Réunion et Mayotte ont tous des durées moyennes des navettes particulièrement basses avec 8.74 minutes pour la Guyane, là où, d'un autre côté, les départements Seine-Saint-Denis, Seine-et-Marne, Val-de-Marne, Val-d'Oise, Yvelines, Hauts-de-Seine, Essonne, Paris et Oise ont des durées des navettes anormalement élevées, jusqu'à 36.72 minutes pour Seine-Saint-Denis.
+
+6-carte de france métropolitaine pour la durée moyenne des navettes domicile-travail pour les actifs occupés (minutes) (2016)
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+FranceFormes <- getData(name="GADM", country="FRA", level=2)
+idx <- match(FranceFormes$NAME_2, c)
+concordance <- A[idx,4]
+FranceFormes$m_du_n <- concordance
+couleurs <- colorRampPalette(c('white', 'orange'))
+spplot(FranceFormes,"m_du_n" ,col.regions=couleurs(30),  main=list(label="durée moyenne des navettes domicile-travail pour les actifs occupés en minutes (2016)",cex=.8))
+```
+
+# étude descriptive pour la distance moyenne des navettes domicile-travail pour les actifs occupés (km) (2016):
+
+1-calcule de la moyenne,médiane, max, min :
+
+```{r echo=FALSE}
+summary(A[,5],na.rm=TRUE)
+```
+
+2-calcule de la variance et de l'écart-type:
+
+```{r echo=FALSE}
+var(A[,5],na.rm=TRUE)
+sd(A[,5],na.rm=TRUE)
+```
+
+3-diagramme en bâtons de la distance moyenne des navettes domicile-travail pour les actifs occupés (km) (2016) :
+
+```{r echo=FALSE, fig.width=13}
+barplot(A[,5],xlab = "département",ylab = "distance moyenne des navettes en km",ylim = c(0,30), main = "diagramme en bâtons",names.arg =s)
+```
+
+4-histogramme de la distance moyenne des navettes domicile-travail pour les actifs occupés (km) (2016) :
+
+```{r echo=FALSE}
+hist(A[,5],xlab ="distance moyenne des navettes en km",ylab = "frequence",main = "histogramme" )
+```
+
+5-boîte à moustaches de la distance moyenne des navettes domicile-travail pour les actifs occupés (km) (2016):
+
+```{r echo=FALSE}
+boxplot(A[,5],main="boîte à moustaches",ylab="distance moyenne des navettes en km")
+```
+
+Interprétation des résultats (d'histogramme et de boîte à moustaches): Ici les distances sont plus hétérogènes et plus dispersées, avec comme précédemment des aberrations des deux côtés. On retrouve Seine-et-Marne et Oise avec 27.91 et 27.35 km respectivement ; à l'inverse on a Guyane, Mayotte, Martinique, Guadeloupe, La Réunion, Corse-du-Sud, Paris, Haute-Corse et Hauts-de-Seine dont les distances moyennes des navettes sont beaucoup plus basses que la moyenne (8.74 km pour la Guyane). On remarque par rapport à la variable précédente des aberrations par rapport à certains départements : ainsi, malgré des distances moyennes faibles pour Paris et Hauts-de-Seine, on a vu plus haut que les durées moyennes étaient parmi les plus élevées. Ceci s'explique notamment par la densité de population dans ces départements et les difficultés de circulation.
+
+6-carte de france métropolitaine pour la distance moyenne des navettes domicile-travail pour les actifs occupés (km) (2016)
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+FranceFormes <- getData(name="GADM", country="FRA", level=2)
+idx <- match(FranceFormes$NAME_2, c)
+concordance <- A[idx,5]
+FranceFormes$m_di_n <- concordance
+couleurs <- colorRampPalette(c('white', 'purple'))
+spplot(FranceFormes,"m_di_n" ,col.regions=couleurs(30),  main=list(label="distance moyenne des navettes domicile-travail pour les actifs occupés en km (2016)",cex=.8))
+```
+
+# étude descriptive pour l'émissions en équivalent CO2 par gaz (2016):
+
+1-calcule de la moyenne,médiane, max, min :
+
+```{r echo=FALSE}
+summary(A[,6],na.rm=TRUE)
+```
+
+2-calcule de la variance et de l'écart-type:
+
+```{r echo=FALSE}
+var(A[,6],na.rm=TRUE)
+sd(A[,6],na.rm=TRUE)
+```
+
+3-diagramme en bâtons de l'émissions en équivalent CO2 par gaz (tonnes) (2016) :
+
+```{r echo=FALSE, fig.width=13}
+barplot(A[,6],xlab = "département",ylab = "l'émissions en équivalent CO2 par gaz (tonnes)",ylim = c(0,26677088), main = "diagramme en bâtons",names.arg =s)
+```
+
+4-diagramme en bâtons de l'émissions en équivalent CO2 par gaz (tonnes) (2016) :
+
+```{r echo=FALSE}
+hist(A[,6],xlab ="l'émissions en équivalent CO2 par gaz (tonnes)",ylab = "frequence",main = "histogramme" )
+```
+
+5-boîte à moustaches de l'émissions en équivalent CO2 par gaz (tonnes) (2016):
+
+```{r echo=FALSE}
+boxplot(A[,6],main="boîte à moustaches",ylab="l'émissions en équivalent CO2 par gaz (tonnes)")
+```
+
+Interprétation des résultats (d'histogramme et de boîte à moustaches): On remarque que plus de 70% des départements se situent entre 0 et 5000000 tonnes d'émissions en équivalent CO2 par gaz, avec toutefois certaines valeurs extrêmement élevées pour les départements Nord et Bouches-du-Rhône, culminant à ~26000000 tonnes. Dans une moindre mesure, on peut lire sur le diagramme boîte à moustaches que les départements Seine-Maritime, Moselle, Loire-Atlantique, Rhône et Pas-de-Calais ont aussi un taux d'émissions largement supérieur à la moyenne.
+
+6-carte de france métropolitaine pour l'émissions en équivalent CO2 par gaz (tonnes) (2016)
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+FranceFormes <- getData(name="GADM", country="FRA", level=2)
+idx <- match(FranceFormes$NAME_2, c)
+concordance <- A[idx,6]
+FranceFormes$co <- concordance
+couleurs <- colorRampPalette(c('white', 'black'))
+spplot(FranceFormes,"co" ,col.regions=couleurs(30),  main=list(label="l'émissions en équivalent CO2 par gaz en tonnes (2016)",cex=.8))
+```
+
+## Exercice 4
+
+# Analyse factorielle (ACP) des données de la base construite
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+B<-as.matrix(A)
+for (j in 1:6) 
+ {cc<-mean(B[,j],na.rm=TRUE)
+  b<-sd(B[,j],na.rm = TRUE)
+  for (i in 1:101)
+    {B[i,j]<-(B[i,j]-cc)/b}
+}
+B[97,1]<-0
+B[99,1]<-0
+B[101,1]<-0
+for (i in 97:101)
+  B[i,6]<-0
+acp3<-PCA(B,graph = FALSE)
+summary.PCA(acp3,nbelements = 101)
+```
+
+D'aprés la règle de kaiser, on garde seulement les composantes principales dont les variances sont strictement supérieures à 1, donc dans notre cas on garde les deux 1ere composantes principales.
+
+
+```{r echo=FALSE}
+plot.PCA(acp3,cex=0.6)
+```
+
+
+Interpretation: Au debut, les points les plus proches signifies que la moyenne de chacune est trés proche, alors chacune deux on des comportements proche au moins dans un seul variable, par exemple Mayotte et Guyane, paris et Haute-corse, val-de-marne et pas-de-calais, yvelines et essonne, alors que les point qui sont opposées (au premiér axe) sont des département trés différentes puisque le 1ere axe est celui qui sépare au mieux les points, comme corse-du-sud et yvelines, mayotte et seine-et-marne, alors maintenant qu 'est-ce qui sépare, qu'est-ce qui s'oppose corse-du-sud à yvelines par exemple? pour répondre à cette question on peut avoir une bonne connaissance des données et dire par exemple qu'à yvelines le taux de pauvreté est moins que celui à corse-du-sud, mais si on veut raisonner uniquement à partir du jeu de données, on va vouloir utiliser les variables pour interpréter ces dimensions de variabilité, qu'est-ce qui oppose yvelines à corse-du-sud? pour le savoir on va considérer le (PCA graph of variables) ci dessous
+
+
+```{r echo=FALSE}
+plot.PCA(acp3,choix = "var")
+```
+
+d'aprés cette graphe du cercle des corrélations, on voit que les variables (parts modales des déplacements, distance moyenne des navettes et durée moyenne des navettes) sont corélées positivement à l'axe 1, cette corrélations est respectivement (0.745, 0.775 et 0.674), ces corrélations sont proche de 1 cela signifie que ces variables sont trés liées
+aux coordonnées sur l'axe 1, tandis que le variable (part des actifs stables) est trés corrélées negativement à l'axe 1
+(-0.865). Autrement dit, les départements qui sont à gauche, avec une faible coordonnée sur l'axe 1 ont des pourcentages faible au (parts modales des déplacements, distance moyenne des navettes et durée moyenne des navettes) et forte par rapport au variable (part des actifs stables), les département qui sont au milieu ont des pourcentages moyennes sur les memes variables et les département qui sont à droite ont des pourcentages élevées dans le (parts modales des déplacements, distance moyenne des navettes et durée moyenne des navettes) et des pourcentages faibles dans le (part des actifs stables).
+Donc on peut conclure à partir de cette cercle que à droite du graphe (PCA graph of individuals), on a toutes les departements pour lesquelles il y a de forte valeurs à la fois pour (parts modales des déplacements, distance moyenne des navettes et durée moyenne des navettes) et de faibles valeurs en (part des actifs stables), et à gauche c'est l'inverse.
+
+Maintenant qu'est-ce qui sépare les departements par rapport au deuxiéme axe?, dans le 2eme axe les corrélations sont un peu moins fortes, et c'est normal puisque c'est un axe de variabilité qui est moins important, et on voit que les variables
+(taux de pauvreté, émissions en équivalent CO2 par gaz) sont corélées positivement (0.7 et 0.69 respectivement) à l'axe 2, cela signifie que ces deux variables sont liées à l'axe 2, donc on peut conclure dans le graphe (PCA graph of individuals) que en haut de cette graphe on va avoir les département où le taux de pauvreté total et l'émissions CO2 sont élevés, et inversement en bas.
+
+Aprés l'interprétation du cercle des corrélations, on peut dire que les départements (Nord, La Réunion, Bouches-du-Rhone et seine-saint-denis)  sont les plus polluées et les plus pauvres (en meme temps). Les départements Haute-Savoie et Vendée sont les plus riches, Guyane et mayotte ayant le plus grande part des actifs stables, et seine-et-marne la département ayant la plus grande %  en moyenne pour les variables (parts modales des déplacements, distance moyenne des navettes et durée moyenne des navettes).
+
+
+## Exercice 5
+
+
+# classification sur les départements 
+
+
+```{r echo=FALSE, message=TRUE, warning=TRUE}
+acp2<-dudi.pca(B,scannf = FALSE)
+disto<-dist.dudi(acp2,amongrow = TRUE)
+
+```
+
+```{r echo=FALSE, fig.height=8, fig.width=18}
+cah1<-hclust(disto^2,method = "ward.D")
+plot(cah1,hang=-1)
+rect.hclust(cah1,h=35)
+```
+
+alors on peut deduire d'aprés le cluster dendrogram qu'on a 9 classe qui séparant les départements, on peut alors représenter les classes d'appartenance pour chacun des individus :
+
+```{r echo=FALSE}
+classe<-cutree(cah1,h=35)
+print(classe)
+```
+
+On peut encore représenter les classes et les département dans le premier plan factoriel, les classes apparaissant sous la forme d'ellipses.
+
+```{r echo=FALSE}
+s.class(dfxy = acp2$li,fac=as.factor(classe))
+```
+
+# classification sur les variables
+
+Partant des résultats de l'ACP, on peut aussi effectuer une classification sur les variables.
+
+```{r echo=FALSE}
+disto.var<-dist.dudi(acp2,amongrow = FALSE)
+cah2<-hclust(disto.var^2,method = "ward.D")
+plot(cah2,hang=-1)
+rect.hclust(cah2,h=2)
+```
+
+Alors on a seulement 2 classes des variables, le 1ere contient (taux de pauvreté, part des actifs stables,) et le 2eme contient (parts modales des déplacements, distance moyenne des navettes et durée moyenne des navettes, émissions en équivalent CO2 par gaz )
+
+
